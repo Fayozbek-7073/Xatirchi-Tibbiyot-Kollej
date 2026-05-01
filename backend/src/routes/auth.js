@@ -4,6 +4,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const { authenticate } = require('../middleware/auth');
+const { requireRole } = require('../middleware/roleCheck');
 
 const router = express.Router();
 
@@ -44,9 +46,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /auth/register — admin-only, for creating new users
-// (wire up after login is verified; protected at app level if needed)
-router.post('/register', async (req, res) => {
+// POST /auth/register — admin only
+router.post('/register', authenticate, requireRole('admin'), async (req, res) => {
   const { username, password, role } = req.body;
 
   if (!username || !password || !role) {

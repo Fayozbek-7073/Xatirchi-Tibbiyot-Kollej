@@ -13,8 +13,23 @@ const { router: paymentsRouter, topRouter: paymentsTopRouter } = require('./rout
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS — restrict to explicit whitelist from env
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow requests with no Origin header (curl, server-to-server, health checks)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Health check
