@@ -71,44 +71,16 @@ npm run dev   # Frontend ishga tushadi: http://localhost:5173
 
 ---
 
-## 5. Birinchi foydalanuvchilarni yaratish
+## 5. Foydalanuvchilar (avtomatik yaratiladi)
 
-Backend ishga tushgandan keyin terminalda quyidagi buyruqlarni bajaring:
-
-**Admin yaratish:**
-```bash
-curl -X POST http://localhost:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"Admin@2025","role":"admin"}'
-```
-
-**Direktor yaratish** (admin tokeni bilan):
-
-Avval admin sifatida login qiling va tokenni oling:
-```bash
-curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"Admin@2025"}'
-```
-
-Javobdan `token` qiymatini nusxalab, quyidagi buyruqda `<token>` o'rniga qo'ying:
-```bash
-curl -X POST http://localhost:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"username":"direktor","password":"Direktor@2025","role":"director"}'
-```
-
----
-
-## 6. Login ma'lumotlari (lokal test uchun)
+`npm run migrate` bajarganingizda quyidagi foydalanuvchilar avtomatik yaratiladi:
 
 | Rol | Login | Parol |
 |-----|-------|-------|
 | Admin | `admin` | `Admin@2025` |
 | Direktor | `direktor` | `Direktor@2025` |
 
-> **Eslatma:** Bu parollar faqat lokal sinov uchun. Haqiqiy serverda o'zingizning kuchli parolingizni ishlating.
+> **Eslatma:** Bu parollar faqat lokal sinov uchun. Haqiqiy serverda saytga kirib, parolni o'zgartirishingiz tavsiya etiladi.
 
 ---
 
