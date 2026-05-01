@@ -5,6 +5,63 @@ const pool = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleCheck');
 
+// Standalone router: GET /payments  (mounted at /payments in server.js)
+const topRouter = express.Router();
+topRouter.use(authenticate);
+
+// GET /payments — both roles
+// Query params: ?student_id=  ?page=  ?limit=
+topRouter.get('/', async (req, res) => {
+  const conditions = [];
+  const params = [];
+
+  if (req.query.student_id) {
+    const sid = parseInt(req.query.student_id, 10);
+    if (isNaN(sid)) return res.status(400).json({ error: 'Invalid student_id' });
+    params.push(sid);
+    conditions.push(`p.student_id = $${params.length}`);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+  const offset = (page - 1) * limit;
+
+  try {
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM payments p ${where}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    params.push(limit);
+    params.push(offset);
+
+    const result = await pool.query(
+      `SELECT p.id, p.student_id, s.full_name AS student_name,
+              p.amount, p.note, p.created_at,
+              u.username AS created_by_username
+       FROM payments p
+       JOIN students s ON s.id = p.student_id
+       JOIN users u ON u.id = p.created_by
+       ${where}
+       ORDER BY p.created_at DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+
+    return res.json({
+      data: result.rows,
+      meta: { total, page, limit, pages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error('GET /payments error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Nested router: /students/:id/payment(s)  (mounted at /students in server.js)
 const router = express.Router();
 
 router.use(authenticate);
@@ -96,4 +153,4 @@ router.get('/:id/payments', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = { router, topRouter };

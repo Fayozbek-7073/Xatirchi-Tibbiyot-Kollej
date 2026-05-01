@@ -9,7 +9,7 @@ const authRouter = require('./routes/auth');
 const facultiesRouter = require('./routes/faculties');
 const groupsRouter = require('./routes/groups');
 const studentsRouter = require('./routes/students');
-const paymentsRouter = require('./routes/payments');
+const { router: paymentsRouter, topRouter: paymentsTopRouter } = require('./routes/payments');
 
 const app = express();
 
@@ -26,8 +26,10 @@ app.use('/faculties', facultiesRouter);
 app.use('/groups', groupsRouter);
 app.use('/students', studentsRouter);
 
-// Payment routes are nested under /students/:id/payment(s)
+// Nested payment routes: POST /students/:id/payment, GET /students/:id/payments
 app.use('/students', paymentsRouter);
+// Top-level payment listing: GET /payments
+app.use('/payments', paymentsTopRouter);
 
 // 404 handler
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
